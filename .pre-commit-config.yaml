@@ -1,0 +1,85 @@
+minimum_pre_commit_version: 2.20.0
+exclude: |
+  (^alembic/versions/.*$|^migrations/versions/.*$)
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+      - id: trailing-whitespace
+        verbose: true
+        description: Remove trailing whitespace from files.
+      - id: end-of-file-fixer
+        verbose: true
+        description: Ensure files end with a newline.
+      - id: check-yaml
+        verbose: true
+        description: Validate YAML syntax.
+      - id: check-added-large-files
+        verbose: true
+        description: Prevent adding large files to the repository.
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        args: [ '--max-line-length=120', '--verbose' ]
+
+  - repo: https://github.com/psf/black
+    rev: 23.9.1
+    hooks:
+      - id: black
+        args: [ '--verbose' ]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: [ '--verbose', '--profile', 'black' ]
+
+  - repo: https://github.com/pycqa/pylint
+    rev: v3.0.0a7
+    hooks:
+      - id: pylint
+        args: [ '--disable=C0114,C0115,R0903,C0116,E0401,W0719,C0103', '--max-line-length=120' ]
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.13.0
+    hooks:
+      - id: pyupgrade
+
+
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.2.1
+    hooks:
+      - id: autoflake
+        args: [
+          '--in-place',
+          '--remove-all-unused-imports',
+          '--remove-unused-variables',
+          '--ignore-init-module-imports',
+          '--verbose'
+        ]
+        types: [python]
+
+  - repo: local
+    hooks:
+      - id: trivy-scan
+        name: Trivy Scan
+        description: Scan the dir for vulnerabilities using Trivy.
+        entry: trivy
+        args: [fs, ., --config=trivy.yaml, --debug]
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true
+
+      - id: trivy-dockerfile-scan
+        name: Trivy Dockerfile Misconfig Scan
+        description: Scan Dockerfiles for misconfigurations using Trivy.
+        entry: trivy
+        args: [config, Dockerfile, --debug]
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true

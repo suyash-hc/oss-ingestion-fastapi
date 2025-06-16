@@ -1,0 +1,42 @@
+# Python cache and virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Environment files
+.env*
+*.env
+
+# Logs
+*.log
+logs/
+
+# Git and version control
+.git/
+.gitignore
+
+# Docker-related files
+Dockerfile
+docker-compose.yml
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test and coverage reports
+tests/
+.coverage
+*.cover
+coverage.xml
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
