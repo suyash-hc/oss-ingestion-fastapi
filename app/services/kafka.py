@@ -6,6 +6,7 @@ from app.config import settings
 from app.logger import logger
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.errors import TopicAlreadyExistsError
+import base64
 
 class KafkaService:
     def __init__(self):
@@ -37,7 +38,8 @@ class KafkaService:
             self.producer = aiokafka.AIOKafkaProducer(
                 bootstrap_servers=self.bootstrap_servers,
                 client_id=settings.KAFKA_CLIENT_ID,
-                value_serializer=lambda v: json.dumps(v).encode('utf-8')
+                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+                key_serializer=lambda k: k.encode('utf-8') if k else None
             )
             await self.producer.start()
         return self.producer
@@ -70,7 +72,13 @@ class KafkaService:
             raise
     
     async def send_to_kafka(self, topic: str, data: Dict[str, Any]) -> None:
-        """Send data to Kafka topic"""
+        """
+        Send data to Kafka topic. If data contains a 'media' field, it will be base64 encoded.
+        
+        Args:
+            topic: Kafka topic name
+            data: Data to send (media field will be base64 encoded if present)
+        """
         try:
             # Validate topic name first
             self._validate_topic_name(topic)
@@ -78,9 +86,20 @@ class KafkaService:
             # Create topic if it doesn't exist
             self._create_topic_if_not_exists(topic)
             
+            # Process data to encode media field if present
+            processed_data = data.copy()
+            if 'media' in processed_data:
+                media_data = processed_data['media']
+                if isinstance(media_data, str):
+                    # If media is already a string, encode it
+                    processed_data['media'] = base64.b64encode(media_data.encode('utf-8')).decode('utf-8')
+                else:
+                    # If media is bytes or other format, encode it directly
+                    processed_data['media'] = base64.b64encode(str(media_data).encode('utf-8')).decode('utf-8')
+            
             # Get producer and send message
             producer = await self._ensure_producer()
-            await producer.send_and_wait(topic, data)
+            await producer.send_and_wait(topic, value=processed_data)
             logger.info(f"Successfully sent data to topic {topic}")
         except ValueError as ve:
             logger.error(f"Invalid topic name {topic}: {str(ve)}")
