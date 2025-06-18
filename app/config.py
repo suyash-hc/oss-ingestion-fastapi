@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    APP_URL_PREFIX: str = "/digestion"
+    APP_URL_PREFIX: str = "/ingestion"
 
     # Database settings
     DATABASE_URL: str = ""
