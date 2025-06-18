@@ -18,12 +18,16 @@ async def health():
     )
 
 @router.post("/ingest")
-async def ingest_data(data: Dict[str, Any] = Body(...), topic: str = None):
+async def ingest_data(
+    data: Dict[str, Any] = Body(...),
+    topic: str = None
+):
     """
-    Ingest JSON data and send it to Kafka
+    Ingest JSON data and send it to Kafka. If the data contains a 'media' field,
+    it will be automatically base64 encoded before sending to Kafka.
     
     Args:
-        data: The JSON data to ingest
+        data: The JSON data to ingest (media field will be base64 encoded if present)
         topic: Optional Kafka topic (defaults to configured default topic)
     
     Returns:
@@ -58,6 +62,7 @@ async def ingest_data(data: Dict[str, Any] = Body(...), topic: str = None):
         content={
             "status": "Data sent to Kafka",
             "topic": topic,
-            "data_size": len(str(data))
+            "data_size": len(str(data)),
+            "media_encoded": "media" in data
         }
     )
